@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Discord
+
+Parameters:
+  DiscordPublicKey:
+    Type: String
+    Default: hoge
+
+Globals:
+  Function:
+    Timeout: 3
+    MemorySize: 128
+
+Resources:
+  InteractionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: interaction/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+      - x86_64
+      Layers:
+        - !Ref MyLayer
+      # 関数URL有効化
+      FunctionUrlConfig:
+        AuthType: NONE
+      # 環境変数
+      Environment:
+        Variables:
+          DiscordPublicKey: !Ref DiscordPublicKey
+
+  # サードパーティライブリ
+  MyLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      ContentUri: 'layer/'
+      CompatibleRuntimes:
+        - python3.9
+    Metadata:
+      BuildMethod: python3.9
+
