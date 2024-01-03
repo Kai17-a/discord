@@ -25,7 +25,6 @@ def verify_request(event) -> bool:
     publicKey = os.getenv('DiscordPublicKey')
     if not body or not signature or not timestamp or not publicKey:
         return False
-    print(f"検証結果：{discord_interactions.verify_key(bytes(body, 'utf-8'), signature, timestamp, publicKey)}")
     return discord_interactions.verify_key(bytes(body, 'utf-8'), signature, timestamp, publicKey)
 
 def handle_interaction(interaction):
@@ -46,7 +45,6 @@ def handle_interaction(interaction):
 def lambda_handler(event, context):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s:%(name)s - %(message)s")
     logging.info(event['body'])
-    print(event)
 
     if not verify_request(event):
         return {
