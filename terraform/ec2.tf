@@ -40,8 +40,7 @@ variable "ec2_ami" {
 # EC2作成
 resource "aws_instance" "discord_minecraft_skyblock_ec2" {
   ami = "${var.ec2_ami}"
-  # instance_type = "t2.medium"
-  instance_type = "t2.micro"
+  instance_type = "t2.medium"
   availability_zone = "${var.az_a}"
   vpc_security_group_ids = [aws_security_group.discord_ec2_sg.id]
   subnet_id = aws_subnet.discord_public_1a_sn.id
