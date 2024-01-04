@@ -50,10 +50,10 @@ def post_discord(url: str, user_name: str, message: str):
 def lambda_handler(event, context):
     logger.debug(event)
     
-    items = get_dynamodb()
+    items = get_dynamodb(event["channel_id"])
     instances = [items["Items"][0]["instance_id"]]
     response = ec2.describe_instances(InstanceIds=instances)
-    
+
     ec2_status = response['Reservations'][0]['Instances'][0]['State']['Name']
     action = event["action"]
     user_name = event["user_name"]
