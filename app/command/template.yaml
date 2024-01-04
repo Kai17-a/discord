@@ -30,6 +30,21 @@ Resources:
       Environment:
         Variables:
           DiscordPublicKey: !Ref DiscordPublicKey
+  
+  ServerManageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: server-manager/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+      - x86_64
+      Policies:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+        - arn:aws:iam::785735044390:policy/lambda-ec2-access
+      Layers:
+        - !Ref MyLayer
 
   # サードパーティライブリ
   MyLayer:
