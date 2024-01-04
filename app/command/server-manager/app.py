@@ -51,6 +51,9 @@ def lambda_handler(event, context):
     logger.debug(event)
     
     items = get_dynamodb(event["channel_id"])
+    if items["Count"] == 0:
+        logger.error("サーバーが存在しない")
+        post_discord(url, user_name, "処理に失敗しました。\nサーバーが存在しません。")
     instances = [items["Items"][0]["instance_id"]]
     response = ec2.describe_instances(InstanceIds=instances)
 
