@@ -6,6 +6,9 @@ Parameters:
   DiscordPublicKey:
     Type: String
     Default: hoge
+  StatemachineArn:
+    Type: String
+    Default: hoge
 
 Globals:
   Function:
@@ -23,6 +26,9 @@ Resources:
       - x86_64
       Layers:
         - !Ref MyLayer
+      Policies:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess
       # 関数URL有効化
       FunctionUrlConfig:
         AuthType: NONE
@@ -30,6 +36,7 @@ Resources:
       Environment:
         Variables:
           DiscordPublicKey: !Ref DiscordPublicKey
+          StatemachineArn: !Ref StatemachineArn
   
   ServerManageFunction:
     Type: AWS::Serverless::Function
@@ -55,4 +62,3 @@ Resources:
         - python3.9
     Metadata:
       BuildMethod: python3.9
-

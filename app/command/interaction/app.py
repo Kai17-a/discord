@@ -1,11 +1,15 @@
 import os
+import datetime
 import logging
 import json
+import boto3
 import discord_interactions
 from discord_interactions import InteractionType, InteractionResponseType
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(asctime)s %(message)s")
 logger = logging.getLogger()
+
+stf_client = boto3.client('stepfunctions')
 
 def verify_request(event: dict) -> bool:
     """
@@ -52,18 +56,38 @@ def handle_interaction(interaction: dict) -> dict:
     """
     if interaction['type'] is InteractionType.APPLICATION_COMMAND:
         # discordからのリクエストがslash commandsの場合
-        command = interaction['data']
-        if command['name'] == 'hello':
+        user_name = interaction['member']['user']['global_name']
+        command_name = interaction['data']['name']
+        channel_id = interaction['channel_id']
+        if command_name == 'start' or command_name == 'stop':
+            execute_stepfunctios(user_name, command_name, channel_id)
             return {
                 "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                 "data": {
-                    "content": "hello Lambda!"
+                    "content": f"コマンドが実行されました。\nコマンド: /{command_name}\n実行者: {user_name}\n実行時刻: {datetime.datetime.now()}"
+                }
+            }
+        else:
+            return {
+                "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                "data": {
+                    "content": f"存在しないコマンドが実行されました。\nコマンド: /{command_name}\n実行者: {user_name}\n実行時刻: {datetime.datetime.now()}"
                 }
             }
     else:
         return {
             "type": InteractionResponseType.PONG,
         }
+    
+def execute_stepfunctios(user_name, command_name, channel_id):
+    content = json.dumps({
+        "user_name": user_name,
+        "action": command_name,
+        "channel_id": channel_id
+    })
+    stf_client.start_execution(stateMachineArn = os.getenv('StatemachineArn'), input=content)
+
+
 
 def lambda_handler(event, context):
     logger.info(event['body'])
