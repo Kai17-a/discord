@@ -50,8 +50,6 @@ resource "aws_instance" "discord_minecraft_skyblock_ec2" {
     Name = "terraform-discord-minecraft-skyblock-ec2"
   }
   lifecycle {
-    ignore_changes = [
-      "ami",
-    ]
+    ignore_changes = all
   }
 }
