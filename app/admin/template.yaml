@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Discord
+
+# Parameters:
+  # DiscordPublicKey:
+  #   Type: String
+  #   Default: hoge
+
+Globals:
+  Function:
+    Timeout: 3
+    MemorySize: 128
+
+Resources:
+  ServersTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      TableName: servers
+      AttributeDefinitions:
+        - AttributeName: instance_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: instance_id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 3
+        WriteCapacityUnits: 3
+
+
+  # サードパーティライブリ
+  # MyLayer:
+  #   Type: AWS::Serverless::LayerVersion
+  #   Properties:
+  #     ContentUri: 'layer/'
+  #     CompatibleRuntimes:
+  #       - python3.9
+  #   Metadata:
+  #     BuildMethod: python3.9
+
