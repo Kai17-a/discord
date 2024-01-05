@@ -20,14 +20,14 @@ locals {
 }
 
 resource "local_file" "discord_minecraft_skyblock_private_key_pem" {
-  filename = "${local.private_key_file}"
-  content  = "${tls_private_key.discord_minecraft_skyblock_private_key.private_key_pem}"
+  filename = local.private_key_file
+  content  = tls_private_key.discord_minecraft_skyblock_private_key.private_key_pem
 }
 
 # 上記で作成した公開鍵をAWSのKey pairにインポート
 resource "aws_key_pair" "discord_minecraft_skyblock_keypair" {
-  key_name   = "${var.key_name}"
-  public_key = "${tls_private_key.discord_minecraft_skyblock_private_key.public_key_openssh}"
+  key_name   = var.key_name
+  public_key = tls_private_key.discord_minecraft_skyblock_private_key.public_key_openssh
 }
 
 # ---------------------------
@@ -39,13 +39,13 @@ variable "ec2_ami" {
 
 # EC2作成
 resource "aws_instance" "discord_minecraft_skyblock_ec2" {
-  ami = "${var.ec2_ami}"
-  instance_type = "t2.medium"
-  availability_zone = "${var.az_a}"
-  vpc_security_group_ids = [aws_security_group.discord_ec2_sg.id]
-  subnet_id = aws_subnet.discord_public_1a_sn.id
+  ami                         = var.ec2_ami
+  instance_type               = "t2.medium"
+  availability_zone           = var.az_a
+  vpc_security_group_ids      = [aws_security_group.discord_ec2_sg.id]
+  subnet_id                   = aws_subnet.discord_public_1a_sn.id
   associate_public_ip_address = "true"
-  key_name = "${var.key_name}"
+  key_name                    = var.key_name
   tags = {
     Name = "terraform-discord-minecraft-skyblock-ec2"
   }
