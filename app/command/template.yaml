@@ -9,6 +9,9 @@ Parameters:
   StatemachineArn:
     Type: String
     Default: hoge
+  SqsQueueName:
+    Type: String
+    Default: hoge
 
 Globals:
   Function:
@@ -29,14 +32,16 @@ Resources:
       Policies:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess
+        - arn:aws:iam::aws:policy/AmazonSQSFullAccess
       # 関数URL有効化
       FunctionUrlConfig:
         AuthType: NONE
       # 環境変数
       Environment:
         Variables:
-          DiscordPublicKey: !Ref DiscordPublicKey
-          StatemachineArn: !Ref StatemachineArn
+          DISCORD_PUBLIC_KEY: !Ref DiscordPublicKey
+          STATEMACHINE_ARM: !Ref StatemachineArn
+          SQS_QUEUE_NAME: !Ref SqsQueueName
   
   ServerManageFunction:
     Type: AWS::Serverless::Function

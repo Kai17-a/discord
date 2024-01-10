@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Discord
+
+Parameters:
+  DiscordWebhookUrl:
+    Type: String
+    Default: hoge
+
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 128
+
+Resources:
+  WebhookNotificationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: webhook-notification/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+      - x86_64
+      Policies:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+      Environment:
+        Variables:
+          DISCORD_WEBHOOK_URL: !Ref DiscordWebhookUrl
+      Events:
+        NotificationEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt NotificationQueue.Arn
+            BatchSize: 1
+  
+  NotificationQueue:
+    Type: AWS::SQS::Queue
