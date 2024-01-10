@@ -89,10 +89,10 @@ resource "aws_security_group" "discord_ec2_sg" {
 
   ingress {
     description = "Mincraft Port"
-    from_port   = 25565
-    to_port     = 25565
-    protocol    = "tcp"
-    cidr_blocks = [local.allowed_cidr]
+    from_port = 25565
+    to_port = 25565
+    protocol = "tcp"
+    cidr_blocks = "${var.white_addresses}"
   }
 
   # アウトバウンドルール
