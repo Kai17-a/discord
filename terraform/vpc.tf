@@ -1,9 +1,9 @@
 # ---------------------------
 # VPC
 # ---------------------------
-resource "aws_vpc" "discord_vpc"{
+resource "aws_vpc" "discord_vpc" {
   cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true   # DNSホスト名を有効化
+  enable_dns_hostnames = true # DNSホスト名を有効化
   tags = {
     Name = "terraform-discord-vpc"
   }
@@ -13,9 +13,9 @@ resource "aws_vpc" "discord_vpc"{
 # Subnet
 # ---------------------------
 resource "aws_subnet" "discord_public_1a_sn" {
-  vpc_id = aws_vpc.discord_vpc.id
-  cidr_block = "10.0.0.0/20"
-  availability_zone = "${var.az_a}"
+  vpc_id            = aws_vpc.discord_vpc.id
+  cidr_block        = "10.0.0.0/20"
+  availability_zone = var.az_a
 
   tags = {
     Name = "terraform-discord-public-1a-sn"
@@ -49,7 +49,7 @@ resource "aws_route_table" "discord_public_rt" {
 
 # SubnetとRoute tableの関連付け
 resource "aws_route_table_association" "discord_igw_public_rt_associate" {
-  subnet_id = aws_subnet.discord_public_1a_sn.id
+  subnet_id      = aws_subnet.discord_public_1a_sn.id
   route_table_id = aws_route_table.discord_public_rt.id
 }
 
@@ -66,13 +66,13 @@ variable "allowed_cidr" {
 }
 
 locals {
-  myip = chomp(data.http.ifconfig.body)
-  allowed_cidr  = (var.allowed_cidr == null) ? "${local.myip}/32" : var.allowed_cidr
+  myip         = chomp(data.http.ifconfig.body)
+  allowed_cidr = (var.allowed_cidr == null) ? "${local.myip}/32" : var.allowed_cidr
 }
 
 # Security Group作成
 resource "aws_security_group" "discord_ec2_sg" {
-  name = "terraform-discord-ec2-sg"
+  name   = "terraform-discord-ec2-sg"
   vpc_id = aws_vpc.discord_vpc.id
   tags = {
     Name = "terraform-discord-ec2-sg"
@@ -81,9 +81,9 @@ resource "aws_security_group" "discord_ec2_sg" {
   # インバウンドルール
   ingress {
     description = "SSH"
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
     cidr_blocks = [local.allowed_cidr]
   }
 
@@ -92,14 +92,14 @@ resource "aws_security_group" "discord_ec2_sg" {
     from_port = 25565
     to_port = 25565
     protocol = "tcp"
-    cidr_blocks = [local.allowed_cidr]
+    cidr_blocks = "${var.white_addresses}"
   }
 
   # アウトバウンドルール
   egress {
-    from_port = 0
-    to_port = 0
-    protocol = "-1"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
