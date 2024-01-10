@@ -54,6 +54,16 @@ def handle_interaction(interaction: dict) -> dict:
     content : dict
         discordレスポンス
     """
+
+    channel_name = interaction['channel']['name']
+    if channel_name != 'api実行':
+        return {
+            "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            "data": {
+                "content": f"このチャンネルでコマンドは実行できません。\n\"api実行\"チャンネルでコマンドを実行してください。\""
+            }
+        }
+
     if interaction['type'] is InteractionType.APPLICATION_COMMAND:
         # discordからのリクエストがslash commandsの場合
         user_name = interaction['member']['user']['global_name']

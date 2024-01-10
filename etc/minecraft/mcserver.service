@@ -1,0 +1,14 @@
+[Unit]
+Description=Minecraft Server
+After=network-online.target
+
+[Service]
+Type=forking
+User=
+WorkingDirectory=/home/user/minecraft
+ExecStart=/bin/bash /home/user/minecraft/boot.sh start
+ExecStop=/bin/bash /home/user/minecraft/boot.sh stop
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

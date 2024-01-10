@@ -3,7 +3,7 @@
 # ---------------------------
 # AWS
 provider "aws" {
-  region     = "ap-northeast-1"
+  region = "ap-northeast-1"
 }
 
 # 自分のパブリックIP取得用
