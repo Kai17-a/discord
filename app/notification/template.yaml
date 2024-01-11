@@ -16,6 +16,7 @@ Resources:
   WebhookNotificationFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: discord-webhook-notification-function
       CodeUri: webhook-notification/
       Handler: app.lambda_handler
       Runtime: python3.9

@@ -22,6 +22,7 @@ Resources:
   InteractionFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: discord-interaction-function
       CodeUri: interaction/
       Handler: app.lambda_handler
       Runtime: python3.9
@@ -46,6 +47,7 @@ Resources:
   ServerManageFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: discord-server-manager-function
       CodeUri: server-manager/
       Handler: app.lambda_handler
       Runtime: python3.9
@@ -62,6 +64,7 @@ Resources:
   MyLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
+      LayerName: discord-lambda-layer
       ContentUri: 'layer/'
       CompatibleRuntimes:
         - python3.9
