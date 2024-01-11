@@ -12,6 +12,9 @@ Parameters:
   SqsQueueName:
     Type: String
     Default: hoge
+  Role:
+    Type: String
+    Default: hoge
 
 Globals:
   Function:
@@ -30,10 +33,6 @@ Resources:
       - x86_64
       Layers:
         - !Ref MyLayer
-      Policies:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess
-        - arn:aws:iam::aws:policy/AmazonSQSFullAccess
       # 関数URL有効化
       FunctionUrlConfig:
         AuthType: NONE
@@ -43,6 +42,7 @@ Resources:
           DISCORD_PUBLIC_KEY: !Ref DiscordPublicKey
           STATEMACHINE_ARM: !Ref StatemachineArn
           SQS_QUEUE_NAME: !Ref SqsQueueName
+      Role: !Ref Role
   
   ServerManageFunction:
     Type: AWS::Serverless::Function
@@ -59,6 +59,7 @@ Resources:
         - arn:aws:iam::785735044390:policy/lambda-ec2-access
       Layers:
         - !Ref MyLayer
+      Role: !Ref Role
 
   # サードパーティライブリ
   MyLayer:

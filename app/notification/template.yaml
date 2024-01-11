@@ -6,6 +6,9 @@ Parameters:
   DiscordWebhookUrl:
     Type: String
     Default: hoge
+  Role:
+    Type: String
+    Default: hoge
 
 Globals:
   Function:
@@ -34,6 +37,7 @@ Resources:
           Properties:
             Queue: !GetAtt NotificationQueue.Arn
             BatchSize: 1
+      Role: !Ref Role
   
   NotificationQueue:
     Type: AWS::SQS::Queue
