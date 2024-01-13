@@ -9,6 +9,9 @@ from discord_interactions import InteractionType, InteractionResponseType
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(asctime)s %(message)s")
 logger = logging.getLogger()
 
+JST = timezone(timedelta(hours=+9), 'JST')
+dt_now = datetime.now(JST)
+
 stf_client = boto3.client('stepfunctions')
 sqs_client = boto3.client('sqs')
 
@@ -57,24 +60,21 @@ def handle_interaction(interaction: dict) -> dict:
     """
 
     if interaction['type'] is InteractionType.APPLICATION_COMMAND:
-        # コマンド実行が実行できるチャンネルか判定
-        channel_name = interaction['channel']['name']
-        if channel_name != 'api実行':
-            return {
-                "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                "data": {
-                    "content": f"このチャンネルでコマンドは実行できません。\n\"api実行\"チャンネルでコマンドを実行してください。\""
-                }
-            }
-
         # discordからのリクエストがslash commandsの場合
+        channel_name = interaction['channel']['name']
         user_name = interaction['member']['user']['global_name']
         command_name = interaction['data']['name']
         channel_id = interaction['channel_id']
+
         if command_name == 'start' or command_name == 'stop':
-            t_delta = timedelta(hours=9)
-            JST = timezone(t_delta, 'JST')
-            dt_now = datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S")
+            if channel_name != 'api実行':
+                # コマンド実行が実行できるチャンネルか判定
+                return {
+                    "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                    "data": {
+                        "content": f"このチャンネルでコマンドは実行できません。\n\"api実行\"チャンネルでコマンドを実行してください。\""
+                    }
+            }
             execute_stepfunctios(user_name, command_name, channel_id)
             execute_send_sqs(channel_id, user_name, command_name, dt_now)
             return {
