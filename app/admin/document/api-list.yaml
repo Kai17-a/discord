@@ -1,0 +1,63 @@
+openapi: 3.0.0
+info:
+  title: Discord管理者コマンド一覧
+  version: 0.0.0
+paths:
+  /regist-command:
+    post:
+      summary: slash command登録
+      description: Discordサーバーにコマンドを登録する
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+              example:
+                name: コマンド名
+                description: コマンドの説明
+      responses:
+        '204':
+          description: 成功
+  /store-server:
+    post:
+      summary: サーバー情報登録
+      description: チャンネルに紐づくサーバー情報をDBに登録する
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - instance_id
+                - channel_id
+                - channel_name
+                - server_name
+                - webhook_url
+              properties:
+                instance_id:
+                  type: string
+                channel_id:
+                  type: string
+                channel_name:
+                  type: string
+                server_name:
+                  type: string
+                webhook_url:
+                  type: string
+              example:
+                instance_id: ec2インスタンスID
+                channel_id: DiscordチャンネルID
+                channel_name: Discordチャンネル名
+                server_name: サーバー名
+                webhook_url: Discord Webhook url
+      responses:
+        '204':
+          description: 成功

@@ -1,0 +1,19 @@
+openapi: 3.0.0
+info:
+  title: Discord管理者コマンド一覧
+  version: 0.0.0
+paths:
+  /start:
+    get:
+      summary: サーバー起動コマンド
+      description: ec2を起動するコマンド
+      responses:
+        '200':
+          description: 成功
+  /stop:
+    get:
+      summary: サーバー停止コマンド
+      description: ec2を停止するコマンド
+      responses:
+        '200':
+          description: 成功
