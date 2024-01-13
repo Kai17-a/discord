@@ -6,6 +6,9 @@ Parameters:
   DiscordWebhookUrl:
     Type: String
     Default: hoge
+  Role:
+    Type: String
+    Default: hoge
 
 Globals:
   Function:
@@ -16,6 +19,7 @@ Resources:
   WebhookNotificationFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: discord-webhook-notification-function
       CodeUri: webhook-notification/
       Handler: app.lambda_handler
       Runtime: python3.9
@@ -33,6 +37,7 @@ Resources:
           Properties:
             Queue: !GetAtt NotificationQueue.Arn
             BatchSize: 1
+      Role: !Ref Role
   
   NotificationQueue:
     Type: AWS::SQS::Queue

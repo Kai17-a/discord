@@ -6,10 +6,13 @@ Parameters:
   DiscordPublicKey:
     Type: String
     Default: hoge
-  StatemachineArn:
+  ServerManagerStatemachineArn:
     Type: String
     Default: hoge
   SqsQueueName:
+    Type: String
+    Default: hoge
+  Role:
     Type: String
     Default: hoge
 
@@ -22,6 +25,7 @@ Resources:
   InteractionFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: discord-interaction-function
       CodeUri: interaction/
       Handler: app.lambda_handler
       Runtime: python3.9
@@ -29,10 +33,6 @@ Resources:
       - x86_64
       Layers:
         - !Ref MyLayer
-      Policies:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess
-        - arn:aws:iam::aws:policy/AmazonSQSFullAccess
       # 関数URL有効化
       FunctionUrlConfig:
         AuthType: NONE
@@ -40,28 +40,28 @@ Resources:
       Environment:
         Variables:
           DISCORD_PUBLIC_KEY: !Ref DiscordPublicKey
-          STATEMACHINE_ARM: !Ref StatemachineArn
+          SERVER_MANAGEMENT_STATEMACHINE_ARM: !Ref ServerManagerStatemachineArn
           SQS_QUEUE_NAME: !Ref SqsQueueName
+      Role: !Ref Role
   
   ServerManageFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: discord-server-manager-function
       CodeUri: server-manager/
       Handler: app.lambda_handler
       Runtime: python3.9
       Architectures:
       - x86_64
-      Policies:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
-        - arn:aws:iam::785735044390:policy/lambda-ec2-access
       Layers:
         - !Ref MyLayer
+      Role: !Ref Role
 
   # サードパーティライブリ
   MyLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
+      LayerName: discord-lambda-layer
       ContentUri: 'layer/'
       CompatibleRuntimes:
         - python3.9

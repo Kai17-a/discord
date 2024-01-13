@@ -56,16 +56,17 @@ def handle_interaction(interaction: dict) -> dict:
         discordレスポンス
     """
 
-    channel_name = interaction['channel']['name']
-    if channel_name != 'api実行':
-        return {
-            "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            "data": {
-                "content": f"このチャンネルでコマンドは実行できません。\n\"api実行\"チャンネルでコマンドを実行してください。\""
-            }
-        }
-
     if interaction['type'] is InteractionType.APPLICATION_COMMAND:
+        # コマンド実行が実行できるチャンネルか判定
+        channel_name = interaction['channel']['name']
+        if channel_name != 'api実行':
+            return {
+                "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                "data": {
+                    "content": f"このチャンネルでコマンドは実行できません。\n\"api実行\"チャンネルでコマンドを実行してください。\""
+                }
+            }
+
         # discordからのリクエストがslash commandsの場合
         user_name = interaction['member']['user']['global_name']
         command_name = interaction['data']['name']
@@ -113,7 +114,7 @@ def execute_stepfunctios(user_name, command_name, channel_id):
             "action": command_name,
             "channel_id": channel_id
         })
-        stateMachine_arn = os.getenv('STATEMACHINE_ARM')
+        stateMachine_arn = os.getenv('SERVER_MANAGEMENT_STATEMACHINE_ARM')
         stf_client.start_execution(stateMachineArn=stateMachine_arn, input=content)
     except Exception as e:
         logger.error(f"StepFunctions連携処理が失敗しました。")

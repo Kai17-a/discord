@@ -29,7 +29,7 @@ def get_dynamodb(channel_id: str):
     )
     return response
 
-def post_discord(url: str, user_name: str, message: str):
+def post_discord(url: str, message: str):
     """
     webhook送信
     
@@ -43,7 +43,9 @@ def post_discord(url: str, user_name: str, message: str):
         メッセージ
     """
     body = {
-        "content": f"{message}\n実行者: {user_name}",
+        "embeds": [{
+            "description": message,
+        }],
     }
     requests.post(url, json=body)
 
@@ -53,22 +55,21 @@ def lambda_handler(event, context):
     items = get_dynamodb(event["channel_id"])
     if items["Count"] == 0:
         logger.error("サーバーが存在しない")
-        post_discord(url, user_name, "処理に失敗しました。\nサーバーが存在しません。")
+        post_discord(url, "処理に失敗しました。\nサーバーが存在しません。")
     instances = [items["Items"][0]["instance_id"]]
     response = ec2.describe_instances(InstanceIds=instances)
 
     ec2_status = response['Reservations'][0]['Instances'][0]['State']['Name']
     action = event["action"]
-    user_name = event["user_name"]
     url = items["Items"][0]["webhook_url"]
 
     if action == "start" and ec2_status == "stopped":
         ec2.start_instances(InstanceIds=instances)
-        post_discord(url, user_name, "サーバー起動中です。")
+        post_discord(url, "サーバー起動中です。")
     elif action == "stop" and ec2_status == "running":
         ec2.stop_instances(InstanceIds=instances)
-        post_discord(url, user_name, "サーバー停止中です。")
+        post_discord(url, "サーバー停止中です。")
     else:
         logger.error("不正な値")
-        post_discord(url, user_name, "処理に失敗しました。\nサーバーの状態とコマンドを確かめてください。")
+        post_discord(url, "処理に失敗しました。\nサーバーの状態とコマンドを確かめてください。")
 
