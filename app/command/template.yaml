@@ -6,7 +6,7 @@ Parameters:
   DiscordPublicKey:
     Type: String
     Default: hoge
-  StatemachineArn:
+  ServerManagerStatemachineArn:
     Type: String
     Default: hoge
   SqsQueueName:
@@ -40,7 +40,7 @@ Resources:
       Environment:
         Variables:
           DISCORD_PUBLIC_KEY: !Ref DiscordPublicKey
-          STATEMACHINE_ARM: !Ref StatemachineArn
+          SERVER_MANAGEMENT_STATEMACHINE_ARM: !Ref ServerManagerStatemachineArn
           SQS_QUEUE_NAME: !Ref SqsQueueName
       Role: !Ref Role
   
