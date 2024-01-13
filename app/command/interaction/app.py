@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 import logging
 import json
 import boto3
@@ -9,8 +9,6 @@ from discord_interactions import InteractionType, InteractionResponseType
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(asctime)s %(message)s")
 logger = logging.getLogger()
 
-JST = timezone(timedelta(hours=+9), 'JST')
-dt_now = datetime.now(JST)
 
 stf_client = boto3.client('stepfunctions')
 sqs_client = boto3.client('sqs')
@@ -66,8 +64,13 @@ def handle_interaction(interaction: dict) -> dict:
         command_name = interaction['data']['name']
         channel_id = interaction['channel_id']
 
-        if command_name == 'start' or command_name == 'stop':
-            if channel_name != 'api実行':
+        if command_name == 'aws_cost':
+            usable_channel_name = "aws_料金"
+        else:
+            usable_channel_name = "api実行"
+
+        if usable_channel_name == "api実行":
+            if channel_name != usable_channel_name:
                 # コマンド実行が実行できるチャンネルか判定
                 return {
                     "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -75,14 +78,34 @@ def handle_interaction(interaction: dict) -> dict:
                         "content": f"このチャンネルでコマンドは実行できません。\n\"api実行\"チャンネルでコマンドを実行してください。\""
                     }
             }
-            execute_stepfunctios(user_name, command_name, channel_id)
-            execute_send_sqs(channel_id, user_name, command_name, dt_now)
-            return {
-                "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                "data": {
-                    "content": f"コマンドが実行されました。\nコマンド: /{command_name}\n実行者: {user_name}\n実行時刻: {dt_now}"
+
+            if command_name == 'start' or command_name == 'stop':
+                execute_stepfunctios(os.getenv('SERVER_MANAGEMENT_STATEMACHINE_ARN'), user_name, command_name, channel_id)
+                execute_send_sqs(channel_id, user_name, command_name)
+                return {
+                    "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                    "data": {
+                        "content": f"/{command_name}コマンドが実行されました。\n実行者: {user_name}"
+                    }
                 }
+        elif usable_channel_name == "aws_料金":
+            if channel_name != usable_channel_name or interaction['member']['user']['id'] != '883638889259102248':
+                # コマンド実行が実行できるチャンネルか判定
+                return {
+                    "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                    "data": {
+                        "content": f"このコマンドの実行権限がありません。"
+                    }
             }
+            if command_name == 'aws_cost':
+                execute_stepfunctios(os.getenv('NOTIRY_BILLING_STATEMACHINE_ARN'), user_name, command_name, channel_id, )
+                execute_send_sqs(channel_id, user_name, command_name)
+                return {
+                    "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                    "data": {
+                        "content": f"/{command_name}コマンドが実行されました。\n実行者: {user_name}"
+                    }
+                }
         else:
             return {
                 "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -95,12 +118,14 @@ def handle_interaction(interaction: dict) -> dict:
             "type": InteractionResponseType.PONG,
         }
     
-def execute_stepfunctios(user_name, command_name, channel_id):
+def execute_stepfunctios(stf_arn, user_name='', command_name='', channel_id='') -> None:
     """
     ec2用のLambdaを実行するstepfunctionsを実行する
     
     Parameters
     ----------
+    stf_arn: str
+        step functions arn
     user_name : str
         コマンド実行ユーザー名
     command_name : str
@@ -109,19 +134,19 @@ def execute_stepfunctios(user_name, command_name, channel_id):
         コマンドを実行したDiscordチャンネルID
     """
     try:
-        content = json.dumps({
-            "user_name": user_name,
-            "action": command_name,
-            "channel_id": channel_id
-        })
-        stateMachine_arn = os.getenv('SERVER_MANAGEMENT_STATEMACHINE_ARM')
-        stf_client.start_execution(stateMachineArn=stateMachine_arn, input=content)
+        content = ''
+        if user_name and command_name and channel_id:
+            content = json.dumps({
+                "user_name": user_name,
+                "action": command_name,
+                "channel_id": channel_id
+            })
+        stf_client.start_execution(stateMachineArn=stf_arn, input=content)
     except Exception as e:
         logger.error(f"StepFunctions連携処理が失敗しました。")
         logger.error(e)
-        return
 
-def execute_send_sqs(channel_id, user_name, command_name, dt_now):
+def execute_send_sqs(channel_id: str, user_name: str, command_name: str) -> None:
     """
     監視ログ出力用のSQSへメッセージを送信する
     
@@ -133,8 +158,6 @@ def execute_send_sqs(channel_id, user_name, command_name, dt_now):
         コマンド実行ユーザー名
     command_name : str
         コマンド名
-    dt_now : str
-        コマンド実行日時
     
     """
     queue_name = os.getenv('SQS_QUEUE_NAME')
@@ -145,13 +168,12 @@ def execute_send_sqs(channel_id, user_name, command_name, dt_now):
             "channel_id": channel_id,
             "user": user_name,
             "command": command_name,
-            "executed_at": dt_now
+            "executed_at": datetime.now().strftime('%Y-%m-%d- %H:%M:%S')
         }
         sqs_client.send_message(QueueUrl=queue_url['QueueUrl'], MessageBody=json.dumps(body))
     except Exception as e:
         logger.error(f"SQS送信処理が失敗しました。")
         logger.error(e)
-        return
 
 def lambda_handler(event, context):
     logger.info(event['body'])

@@ -9,6 +9,9 @@ Parameters:
   ServerManagerStatemachineArn:
     Type: String
     Default: hoge
+  NotifyBillingStatemachineArn:
+    Type: String
+    Default: hoge
   SqsQueueName:
     Type: String
     Default: hoge
@@ -40,7 +43,8 @@ Resources:
       Environment:
         Variables:
           DISCORD_PUBLIC_KEY: !Ref DiscordPublicKey
-          SERVER_MANAGEMENT_STATEMACHINE_ARM: !Ref ServerManagerStatemachineArn
+          SERVER_MANAGEMENT_STATEMACHINE_ARN: !Ref ServerManagerStatemachineArn
+          NOTIRY_BILLING_STATEMACHINE_ARN: !Ref NotifyBillingStatemachineArn
           SQS_QUEUE_NAME: !Ref SqsQueueName
       Role: !Ref Role
   
