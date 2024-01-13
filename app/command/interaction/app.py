@@ -113,7 +113,7 @@ def execute_stepfunctios(user_name, command_name, channel_id):
             "action": command_name,
             "channel_id": channel_id
         })
-        stateMachine_arn = os.getenv('STATEMACHINE_ARM')
+        stateMachine_arn = os.getenv('SERVER_MANAGEMENT_STATEMACHINE_ARM')
         stf_client.start_execution(stateMachineArn=stateMachine_arn, input=content)
     except Exception as e:
         logger.error(f"StepFunctions連携処理が失敗しました。")
