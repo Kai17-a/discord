@@ -168,7 +168,7 @@ def execute_send_sqs(channel_id: str, user_name: str, command_name: str) -> None
             "channel_id": channel_id,
             "user": user_name,
             "command": command_name,
-            "executed_at": datetime.now().strftime('%Y-%m-%d- %H:%M:%S')
+            "executed_at": datetime.now().isoformat()
         }
         sqs_client.send_message(QueueUrl=queue_url['QueueUrl'], MessageBody=json.dumps(body))
     except Exception as e:
