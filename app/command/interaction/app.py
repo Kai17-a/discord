@@ -64,22 +64,10 @@ def handle_interaction(interaction: dict) -> dict:
         command_name = interaction['data']['name']
         channel_id = interaction['channel_id']
 
-        if command_name == 'aws_cost':
-            usable_channel_name = "aws_料金"
-        else:
-            usable_channel_name = "api実行"
+        if channel_name == 'api実行':
+            command_list = get_command_list()
 
-        if usable_channel_name == "api実行":
-            if channel_name != usable_channel_name:
-                # コマンド実行が実行できるチャンネルか判定
-                return {
-                    "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                    "data": {
-                        "content": f"このチャンネルでコマンドは実行できません。\n\"api実行\"チャンネルでコマンドを実行してください。\""
-                    }
-            }
-
-            if command_name == 'start' or command_name == 'stop':
+            if command_name in command_name.server:
                 execute_stepfunctios(os.getenv('SERVER_MANAGEMENT_STATEMACHINE_ARN'), user_name, command_name, channel_id)
                 execute_send_sqs(channel_id, user_name, command_name)
                 return {
@@ -88,31 +76,24 @@ def handle_interaction(interaction: dict) -> dict:
                         "content": f"/{command_name}コマンドが実行されました。\n実行者: {user_name}"
                     }
                 }
-        elif usable_channel_name == "aws_料金":
-            if channel_name != usable_channel_name or interaction['member']['user']['id'] != '883638889259102248':
-                # コマンド実行が実行できるチャンネルか判定
+
+            else:
                 return {
                     "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                     "data": {
-                        "content": f"このコマンドの実行権限がありません。"
-                    }
-            }
-            if command_name == 'aws_cost':
-                execute_stepfunctios(os.getenv('NOTIRY_BILLING_STATEMACHINE_ARN'), user_name, command_name, channel_id, )
-                execute_send_sqs(channel_id, user_name, command_name)
-                return {
-                    "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                    "data": {
-                        "content": f"/{command_name}コマンドが実行されました。\n実行者: {user_name}"
+                        "content": f"存在しないコマンドです。"
                     }
                 }
+            
         else:
+            # コマンド実行が実行できるチャンネルか判定
             return {
                 "type": InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                 "data": {
-                    "content": f"存在しないコマンドです。"
+                    "content": f'このチャンネルでコマンドは実行できません。\n"api実行"チャンネルでコマンドを実行してください。\"'
                 }
             }
+
     else:
         return {
             "type": InteractionResponseType.PONG,
@@ -138,7 +119,7 @@ def execute_stepfunctios(stf_arn, user_name='', command_name='', channel_id='') 
         if user_name and command_name and channel_id:
             content = json.dumps({
                 "user_name": user_name,
-                "action": command_name,
+                "command_name": command_name,
                 "channel_id": channel_id
             })
         stf_client.start_execution(stateMachineArn=stf_arn, input=content)
@@ -172,6 +153,15 @@ def execute_send_sqs(channel_id: str, user_name: str, command_name: str) -> None
         sqs_client.send_message(QueueUrl=queue_url['QueueUrl'], MessageBody=json.dumps(body))
     except Exception as e:
         logger.error(f'SQS送信処理が失敗しました。\nエラー内容：{e.__class__.__name__}')
+
+def get_command_list():
+    command_list = {
+        'server': [
+            'start', 'stop', 'status'
+        ],
+    }
+
+    return command_list
 
 def lambda_handler(event, context):
     logger.info(event['body'])
