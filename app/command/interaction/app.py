@@ -143,8 +143,7 @@ def execute_stepfunctios(stf_arn, user_name='', command_name='', channel_id='') 
             })
         stf_client.start_execution(stateMachineArn=stf_arn, input=content)
     except Exception as e:
-        logger.error(f"StepFunctions連携処理が失敗しました。")
-        logger.error(e)
+        logger.error(f'StepFunctions連携処理が失敗しました。\nエラー内容：{e.__class__.__name__}')
 
 def execute_send_sqs(channel_id: str, user_name: str, command_name: str) -> None:
     """
@@ -172,8 +171,7 @@ def execute_send_sqs(channel_id: str, user_name: str, command_name: str) -> None
         }
         sqs_client.send_message(QueueUrl=queue_url['QueueUrl'], MessageBody=json.dumps(body))
     except Exception as e:
-        logger.error(f"SQS送信処理が失敗しました。")
-        logger.error(e)
+        logger.error(f'SQS送信処理が失敗しました。\nエラー内容：{e.__class__.__name__}')
 
 def lambda_handler(event, context):
     logger.info(event['body'])
