@@ -48,12 +48,38 @@ Resources:
           SQS_QUEUE_NAME: !Ref SqsQueueName
       Role: !Ref Role
   
-  ServerManageFunction:
+  ServerStartFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: discord-server-manager-function
+      FunctionName: discord-server-start-function
       CodeUri: server-manager/
-      Handler: app.lambda_handler
+      Handler: start.lambda_handler
+      Runtime: python3.9
+      Architectures:
+      - x86_64
+      Layers:
+        - !Ref MyLayer
+      Role: !Ref Role
+
+  ServerStopFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: discord-server-stop-function
+      CodeUri: server-manager/
+      Handler: stop.lambda_handler
+      Runtime: python3.9
+      Architectures:
+      - x86_64
+      Layers:
+        - !Ref MyLayer
+      Role: !Ref Role
+
+  ServerStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: discord-server-status-function
+      CodeUri: server-manager/
+      Handler: status.lambda_handler
       Runtime: python3.9
       Architectures:
       - x86_64
