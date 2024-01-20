@@ -67,7 +67,7 @@ def handle_interaction(interaction: dict) -> dict:
         if channel_name == 'api実行':
             command_list = get_command_list()
 
-            if command_name in command_name.server:
+            if command_name in command_list['server']:
                 execute_stepfunctios(os.getenv('SERVER_MANAGEMENT_STATEMACHINE_ARN'), user_name, command_name, channel_id)
                 execute_send_sqs(channel_id, user_name, command_name)
                 return {
