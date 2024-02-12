@@ -63,7 +63,7 @@ def lambda_handler(event, context):
 
         ec2_status = response['Reservations'][0]['Instances'][0]['State']['Name']
 
-        if ec2_status == 'running':
+        if ec2_status == 'running' or ec2_status == 'stopping':
             ec2.stop_instances(InstanceIds=instances)
             message = f'サーバーを停止中です'
         elif ec2_status == 'stopped':
