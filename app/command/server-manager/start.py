@@ -35,7 +35,6 @@ def get_dynamodb(channel_id: str):
 def update_dynamodb(channel_id: str, instance_id: str):
     dt_now = datetime.now(JST).strftime('%Y-%m-%d %H:%M:%S')
     table = dynamodb.Table('servers')
-    print(f'instance_id: {instance_id}')
     try:
         option = {
             'Key': {'instance_id': instance_id},
@@ -48,7 +47,7 @@ def update_dynamodb(channel_id: str, instance_id: str):
             },
             'ExpressionAttributeValues': {
                 ':channel_id': channel_id,
-                ':is_active': 1,
+                ':is_active': True,
                 ':started_at': dt_now
             }
         }
