@@ -2,9 +2,12 @@ import requests
 import logging
 import boto3
 from boto3.dynamodb.conditions import Attr
+from datetime import datetime, timedelta, timezone
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(asctime)s %(message)s")
 logger = logging.getLogger()
+
+JST = timezone(timedelta(hours=+9), 'JST')
 
 ec2 = boto3.client('ec2', region_name='ap-northeast-1')
 dynamodb = boto3.resource('dynamodb')
@@ -28,6 +31,35 @@ def get_dynamodb(channel_id: str):
         FilterExpression = Attr("channel_id").eq(channel_id)
     )
     return response
+
+def update_dynamodb(channel_id: str, instance_id: str):
+    dt_now = datetime.now(JST).strftime('%Y-%m-%d %H:%M:%S')
+    table = dynamodb.Table('servers')
+    try:
+        option = {
+            'Key': {'instance_id': instance_id},
+            'ConditionExpression': '#channel_id = :channel_id',
+            'UpdateExpression': 'set #is_active = :is_active, #started_at = :started_at',
+            'ExpressionAttributeNames': {
+                '#channel_id': 'channel_id',
+                '#is_active': 'is_active',
+                '#started_at': 'started_at'
+            },
+            'ExpressionAttributeValues': {
+                ':channel_id': channel_id,
+                ':is_active': True,
+                ':started_at': dt_now
+            }
+        }
+        table.update_item(**option)
+
+    except Exception as err:
+        logger.error(
+                "%sの更新に失敗しました。エラーコード: %s, エラーメッセージ: %s",
+                table.name,
+                err.response["Error"]["Code"],
+                err.response["Error"]["Message"],
+            )
 
 def post_discord(url: str, message: str):
     """
@@ -53,7 +85,9 @@ def lambda_handler(event, context):
     logger.debug(event)
 
     try: 
-        items = get_dynamodb(event["channel_id"])
+        channel_id = event["channel_id"]
+
+        items = get_dynamodb(channel_id)
         if items["Count"] == 0:
             logger.error("サーバーが存在しません")
             raise Exception('サーバーが存在しません')
@@ -63,8 +97,9 @@ def lambda_handler(event, context):
 
         ec2_status = response['Reservations'][0]['Instances'][0]['State']['Name']
 
-        if ec2_status == "stopped":
+        if ec2_status == "stopped" or ec2_status == "pending":
             ec2.start_instances(InstanceIds=instances)
+            update_dynamodb(channel_id, instance_id=instances[0])
             message = f'サーバーを起動中です'
         elif ec2_status == "running":
             logger.warn("サーバーは既に起動しています")
