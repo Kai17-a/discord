@@ -17,3 +17,10 @@ paths:
       responses:
         '200':
           description: 成功
+  /status:
+    get:
+      summary: サーバーステータス取得コマンド
+      description: ec2をの状態を取得するコマンド
+      responses:
+        '200':
+          description: 成功
